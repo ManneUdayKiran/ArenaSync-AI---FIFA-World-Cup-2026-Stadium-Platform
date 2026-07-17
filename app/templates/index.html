@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArenaSync AI - FIFA World Cup 2026 Stadium Platform</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark-theme">
+    <!-- Accessibility Announcement for Screen Readers -->
+    <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Header bar -->
+    <header class="app-header">
+        <div class="logo-container">
+            <div class="logo-icon" aria-hidden="true">⚽</div>
+            <div class="logo-text">
+                <h1>ArenaSync AI</h1>
+                <span class="stadium-badge" id="stadium-badge-id">{{ stadium_name }}</span>
+            </div>
+        </div>
+
+        <!-- Role Select and Global Controls -->
+        <div class="header-controls">
+            <!-- Accessibility Widget -->
+            <div class="a11y-controls" aria-label="Accessibility Settings" role="group">
+                <button id="btn-contrast-toggle" class="control-btn" title="Toggle High Contrast Mode" aria-label="Toggle High Contrast Mode">🌓</button>
+                <button id="btn-font-decrease" class="control-btn" title="Decrease Font Size" aria-label="Decrease Font Size">A-</button>
+                <button id="btn-font-increase" class="control-btn" title="Increase Font Size" aria-label="Increase Font Size">A+</button>
+            </div>
+            
+            <div class="role-selector-container">
+                <label for="select-role-id" class="sr-only">Change Application Role Context</label>
+                <span class="role-label">Context:</span>
+                <button id="role-btn-fan" class="role-btn active" data-role="fan" aria-pressed="true">Fan Mode</button>
+                <button id="role-btn-volunteer" class="role-btn" data-role="volunteer" aria-pressed="false">Volunteer</button>
+                <button id="role-btn-organizer" class="role-btn" data-role="organizer" aria-pressed="false">Command Center</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <main class="app-container">
+        <!-- Navigation Menu -->
+        <nav class="app-nav" aria-label="Main Navigation">
+            <button id="nav-btn-chat" class="nav-item active" data-tab="chat-tab" aria-selected="true" role="tab">
+                <span class="nav-icon">💬</span> AI Copilot Chat
+            </button>
+            <button id="nav-btn-map" class="nav-item" data-tab="map-tab" aria-selected="false" role="tab">
+                <span class="nav-icon">🗺️</span> Stadium Traffic Map
+            </button>
+            <button id="nav-btn-eco" class="nav-item" data-tab="eco-tab" aria-selected="false" role="tab">
+                <span class="nav-icon">🌱</span> Sustainability Hub
+            </button>
+            <!-- Command Center Tab is only fully interactive for Organizer, greyed out for Fan, but shown -->
+            <button id="nav-btn-command" class="nav-item" data-tab="command-tab" aria-selected="false" role="tab">
+                <span class="nav-icon">🚨</span> Incident Command
+            </button>
+        </nav>
+
+        <!-- Dynamic Content View Area -->
+        <div class="content-container">
+            
+            <!-- TAB 1: AI COPILOT CHAT -->
+            <section id="chat-tab" class="tab-panel active" role="tabpanel" aria-label="AI Copilot Chat">
+                <div class="chat-layout">
+                    <!-- Left: Conversations -->
+                    <div class="chat-main-card">
+                        <div class="card-header">
+                            <h2 id="chat-title-id">FIFA 2026 Tournament Assistant</h2>
+                            <div class="chat-controls">
+                                <label for="select-lang-id" class="sr-only">Select assistant language</label>
+                                <select id="select-lang-id" class="select-widget">
+                                    <option value="en">English (US)</option>
+                                    <option value="es">Español (ES)</option>
+                                    <option value="fr">Français (FR)</option>
+                                </select>
+                                <div class="toggle-container">
+                                    <input type="checkbox" id="check-tts-id" class="toggle-checkbox">
+                                    <label for="check-tts-id" class="toggle-label" title="Have the AI speak responses out loud">🔊 Voice Output</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages Screen -->
+                        <div class="chat-history-container" id="chat-history-id" aria-live="log">
+                            <div class="message model-message">
+                                <div class="msg-meta">AI Assistant [Fan Mode]</div>
+                                <div class="msg-content">Welcome! I am your AI Stadium Assistant. How can I guide you through the World Cup match operations today?</div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Inputs Form -->
+                        <form id="chat-form-id" class="chat-input-form" onsubmit="return false;">
+                            <div class="input-row">
+                                <button type="button" id="btn-stt-id" class="stt-btn" title="Simulate voice dictation input" aria-label="Simulate voice speech input">🎤</button>
+                                <input type="text" id="input-query-id" placeholder="Ask about transit, clear bag sizing, food concessions..." required autocomplete="off" aria-label="Type message here">
+                                <button type="submit" id="btn-chat-send-id" class="send-btn">Send ⚡</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Right: Suggestions Context Cards -->
+                    <aside class="chat-suggestions-aside">
+                        <div class="suggestions-card">
+                            <h3>Suggested Queries</h3>
+                            <p class="suggestions-desc">Tailored to your active role and current stadium situation.</p>
+                            <div class="suggestions-list" id="suggestions-list-id">
+                                <!-- Suggested buttons injected via JS -->
+                            </div>
+                        </div>
+                        <div class="llm-mode-card">
+                            <span class="info-label">Gemini API Engine Status:</span>
+                            <span id="gemini-status-indicator" class="status-badge live">{{ gemini_mode }}</span>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <!-- TAB 2: INTERACTIVE STADIUM MAP -->
+            <section id="map-tab" class="tab-panel" role="tabpanel" aria-label="Stadium Traffic Map">
+                <div class="map-layout">
+                    <!-- Map Dashboard Info -->
+                    <div class="map-sidebar">
+                        <h2>Crowd Flow Management</h2>
+                        <p class="section-desc">Real-time gate occupancies, pedestrian congestion and routing options.</p>
+                        
+                        <!-- Route Selection (Accessibility inclusion) -->
+                        <div class="route-preference-card">
+                            <h3>Navigation Preferences</h3>
+                            <div class="radio-group" role="radiogroup" aria-label="Select routing type">
+                                <label class="radio-label">
+                                    <input type="radio" name="route-pref" value="standard" checked id="radio-standard-id">
+                                    <span class="custom-radio"></span> Standard Pedestrian Path
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="route-pref" value="ada" id="radio-ada-id">
+                                    <span class="custom-radio"></span> ADA Accessible Route (Wheelchair, Elevators)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Gate traffic indicators list -->
+                        <div class="gates-list-container" id="gates-list-id">
+                            <!-- Gate states loaded dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Map SVG Visualizer Card -->
+                    <div class="map-visual-card">
+                        <div class="card-header">
+                            <h3>Live Stadium Gates & Congestion Map</h3>
+                            <button id="btn-refresh-map-id" class="btn-secondary">Refresh Traffic</button>
+                        </div>
+                        
+                        <!-- Dynamic SVG representation of Stadium -->
+                        <div class="svg-container">
+                            <svg viewBox="0 0 500 500" class="stadium-svg" id="stadium-svg-id" width="100%" height="100%" aria-label="Vector plan representing MetLife stadium gates">
+                                <!-- Outer stadium wall -->
+                                <circle cx="250" cy="250" r="210" class="stadium-outer" />
+                                <circle cx="250" cy="250" r="160" class="stadium-inner" />
+                                <rect x="200" y="200" width="100" height="100" rx="10" class="stadium-pitch" />
+                                
+                                <!-- Gates Coordinates and Indicator circles -->
+                                <!-- Gate B (North) - Top -->
+                                <line x1="250" y1="20" x2="250" y2="90" class="gate-line" />
+                                <circle cx="250" cy="40" r="15" id="svg-gate-b" class="gate-node node-high" />
+                                <text x="250" y="70" text-anchor="middle" class="gate-label">Gate B (North)</text>
+
+                                <!-- Gate A (East) - Right -->
+                                <line x1="480" y1="250" x2="410" y2="250" class="gate-line" />
+                                <circle cx="460" cy="250" r="15" id="svg-gate-a" class="gate-node node-low" />
+                                <text x="390" y="255" text-anchor="middle" class="gate-label">Gate A (East)</text>
+
+                                <!-- Gate D (South) - Bottom -->
+                                <line x1="250" y1="480" x2="250" y2="410" class="gate-line" />
+                                <circle cx="250" cy="460" r="15" id="svg-gate-d" class="gate-node node-low" />
+                                <text x="250" y="395" text-anchor="middle" class="gate-label">Gate D (South)</text>
+
+                                <!-- Gate C (West) - Left -->
+                                <line x1="20" y1="250" x2="90" y2="250" class="gate-line" />
+                                <circle cx="40" cy="250" r="15" id="svg-gate-c" class="gate-node node-medium" />
+                                <text x="110" y="255" text-anchor="middle" class="gate-label">Gate C (West)</text>
+
+                                <!-- Core labels -->
+                                <text x="250" y="255" text-anchor="middle" class="pitch-label">FIFA PITCH</text>
+                            </svg>
+                        </div>
+                        
+                        <div class="routing-directions-box" id="routing-directions-id">
+                            <strong>Dynamic Routing:</strong> Select standard or ADA route details in the sidebar to review pathways.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: SUSTAINABILITY HUB -->
+            <section id="eco-tab" class="tab-panel" role="tabpanel" aria-label="Sustainability Hub">
+                <div class="eco-layout">
+                    <!-- Column 1: Points & Simulator Scanner -->
+                    <div class="eco-scanner-card">
+                        <h2>FIFA Eco-Impact Tracker</h2>
+                        <p class="section-desc">Help us make 2026 the greenest World Cup. Scan trash items to get correct disposal instructions and score points.</p>
+                        
+                        <!-- Global stats meters -->
+                        <div class="global-stats-row">
+                            <div class="stat-box">
+                                <span class="stat-val" id="global-eco-points">12,450</span>
+                                <span class="stat-name">Global Fan Points</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-val" id="global-co2-saved">4,120.5 kg</span>
+                                <span class="stat-name">CO2 Footprint Reduced</span>
+                            </div>
+                        </div>
+
+                        <!-- Simulated Camera Trash scanner -->
+                        <div class="scanner-interface">
+                            <h3>Simulated Smart Scanner</h3>
+                            <label for="select-trash-item" class="input-label">Select Waste Item to Scan (Camera Simulation)</label>
+                            <div class="scanner-row">
+                                <select id="select-trash-item" class="select-widget full-width">
+                                    <option value="">-- Choose Item to Scan --</option>
+                                    <option value="plastic_bottle">Plastic Beverage Bottle / Can</option>
+                                    <option value="food_waste">Hotdog / Concessions Waste</option>
+                                    <option value="compostable_cup">FIFA Souvenir Cup (Plant-PLA)</option>
+                                    <option value="cardboard_tray">Cardboard Carrying Tray</option>
+                                    <option value="styrofoam_cup">Coffee Styrofoam Mug</option>
+                                </select>
+                                <button id="btn-scan-waste" class="btn-primary">Scan Item</button>
+                            </div>
+                            
+                            <!-- Analysis response display card -->
+                            <div class="scan-result-card hidden" id="scan-result-id">
+                                <div class="result-header">
+                                    <span id="scan-item-name" class="result-title">Item Name</span>
+                                    <span id="scan-bin-badge" class="bin-badge recycle">Bin Type</span>
+                                </div>
+                                <div class="result-body">
+                                    <p id="scan-instructions">Disposal sorting guidelines here...</p>
+                                    <div class="scan-rewards">
+                                        <span>CO2 Saved: <strong id="scan-co2">0.0 kg</strong></span>
+                                        <span>Points Earned: <strong id="scan-points">0</strong></span>
+                                    </div>
+                                    <div class="sustainability-tip-box">
+                                        💡 <em id="scan-tip">Tip detail...</em>
+                                    </div>
+                                </div>
+                                <div class="submit-points-row">
+                                    <label for="username-points" class="sr-only">Enter username to claim points</label>
+                                    <input type="text" id="username-points" placeholder="Enter username..." value="EcoFan_US">
+                                    <button id="btn-submit-points" class="btn-accent">Claim Eco-Points 🌿</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Leaderboard -->
+                    <div class="eco-leaderboard-card">
+                        <h3>Green Fan Leaderboard</h3>
+                        <div class="leaderboard-table-wrapper">
+                            <table class="leaderboard-table" id="leaderboard-table-id">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Rank</th>
+                                        <th scope="col">User</th>
+                                        <th scope="col">Points</th>
+                                        <th scope="col">CO2 Saved</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-body-id">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: ORGANIZER COMMAND CENTER -->
+            <section id="command-tab" class="tab-panel" role="tabpanel" aria-label="Incident Command Center">
+                <!-- Banner shown to Fans/Volunteers requesting they switch role to access full functions -->
+                <div id="command-restrict-banner" class="role-warning-banner">
+                    ⚠️ <strong>Restricted View:</strong> Some tools in the Command Center are write-disabled. To use the ticket generator and incident plan drafting, switch to <strong>Command Center</strong> context in the header.
+                </div>
+
+                <div class="command-layout">
+                    <!-- Column 1: Live Alerts Feed & Create Alert Form -->
+                    <div class="command-logs">
+                        <div class="card-header">
+                            <h2>Incident Management</h2>
+                            <span class="active-alerts-count" id="active-alerts-count-id">3 Active Tickets</span>
+                        </div>
+
+                        <!-- Incident Logger Form -->
+                        <div class="log-incident-container">
+                            <h3>Log Operations Incident</h3>
+                            <form id="incident-form-id" onsubmit="return false;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="input-incident-title">Ticket Title</label>
+                                        <input type="text" id="input-incident-title" placeholder="Scanner offline, spill, etc." required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="select-incident-zone">Zone/Location</label>
+                                        <input type="text" id="select-incident-zone" placeholder="Gate B, Section 112, etc." required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="select-incident-severity">Severity Level</label>
+                                        <select id="select-incident-severity" class="select-widget">
+                                            <option value="Low">Low - Operations Notice</option>
+                                            <option value="Medium" selected>Medium - Dispatch Help</option>
+                                            <option value="High">High - Emergency / Bottleneck</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="input-incident-desc">Description</label>
+                                        <input type="text" id="input-incident-desc" placeholder="Details of issues..." required>
+                                    </div>
+                                </div>
+                                <button type="submit" id="btn-submit-incident" class="btn-primary">Log Ticket</button>
+                            </form>
+                        </div>
+
+                        <!-- Alerts Logs Feed -->
+                        <div class="alerts-feed-wrapper">
+                            <h3>Operational Tickets Feed</h3>
+                            <div class="alerts-feed-list" id="alerts-feed-list-id">
+                                <!-- Incidents loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: GenAI Incident response plan output -->
+                    <div class="command-decision-support">
+                        <div class="card-header">
+                            <h3>GenAI Real-time Decision Support</h3>
+                            <span class="ai-pill">Groq Operations Assistant</span>
+                        </div>
+                        <div class="decision-support-content" id="decision-support-content-id">
+                            <div class="empty-state">
+                                <p>Select an operational ticket from the feed and click <strong>"Draft Response Plan"</strong> to generate real-time dispatch solutions, multilingual announcements, and task updates.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>&copy; 2026 FIFA World Cup MetLife Venue Team. Powered by Google Gemini.</p>
+    </footer>
+
+    <!-- Main javascript file -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+venv/
+myenv/
+.pytest_cache/
+.vscode/
+.idea/
+walkthrough.md
+task.md
+implementation_plan.md
