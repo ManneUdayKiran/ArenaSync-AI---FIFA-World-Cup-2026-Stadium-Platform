@@ -10,6 +10,8 @@ from app.config import settings
 from app.routers import assistant, operations, sustainability
 from app.services.groq_service import groq_service
 
+import inspect
+
 # Initialize FastAPI
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -45,6 +47,15 @@ app.include_router(assistant.router)
 app.include_router(operations.router)
 app.include_router(sustainability.router)
 
+def render_template(request: Request, name: str, context: dict):
+    """Helper to maintain TemplateResponse signature compatibility across Starlette versions."""
+    context["request"] = request
+    sig = inspect.signature(templates.TemplateResponse)
+    if "request" in sig.parameters:
+        return templates.TemplateResponse(request=request, name=name, context=context)
+    else:
+        return templates.TemplateResponse(name, context)
+
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     """
@@ -61,10 +72,10 @@ async def serve_home_page(request: Request):
     """
     Serves the primary ArenaSync single-page application interface.
     """
-    return templates.TemplateResponse(
-        "index.html", 
-        {
-            "request": request, 
+    return render_template(
+        request=request,
+        name="index.html",
+        context={
             "stadium_name": settings.STADIUM_NAME,
             "gemini_mode": "Groq Cloud (gpt-oss-120b)" if groq_service.is_active else "Intelligent Fallback Simulation"
         }
