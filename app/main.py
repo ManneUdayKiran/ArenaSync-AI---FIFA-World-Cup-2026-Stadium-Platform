@@ -25,9 +25,9 @@ app = FastAPI(
 # CORS Setup for secure communications
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -58,6 +58,24 @@ def render_template(request: Request, name: str, context: dict):
         return templates.TemplateResponse(request=request, name=name, context=context)
     else:
         return templates.TemplateResponse(name, context)
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """
+    Middleware to inject strict security headers for clickjacking and mime sniffing prevention.
+    """
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:;"
+    )
+    return response
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):

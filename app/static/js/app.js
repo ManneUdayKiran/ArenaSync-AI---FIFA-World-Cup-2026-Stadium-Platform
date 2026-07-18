@@ -160,6 +160,52 @@ function initAccessibilityControls() {
     });
 }
 
+function reLocalizeUIElements(lang) {
+    const translations = {
+        en: {
+            copilot: "💬 AI Copilot Chat",
+            map: "🗺️ Stadium Traffic Map",
+            eco: "🌱 Sustainability Hub",
+            command: "🚨 Incident Command",
+            voice: "🔊 Voice Output",
+            chat_title: "FIFA 2026 Tournament Assistant"
+        },
+        es: {
+            copilot: "💬 Chat de Copiloto AI",
+            map: "🗺️ Mapa de Tráfico",
+            eco: "🌱 Hub de Sostenibilidad",
+            command: "🚨 Centro de Incidentes",
+            voice: "🔊 Salida de Voz",
+            chat_title: "Asistente del Torneo FIFA 2026"
+        },
+        fr: {
+            copilot: "💬 Chat de Copilote IA",
+            map: "🗺️ Carte du Trafic",
+            eco: "🌱 Hub de Sostenibilité",
+            command: "🚨 Poste de Commandement",
+            voice: "🔊 Sortie Vocale",
+            chat_title: "Assistant de Tournoi FIFA 2026"
+        }
+    };
+    const t = translations[lang] || translations.en;
+    
+    const navChat = document.getElementById('nav-btn-chat');
+    const navMap = document.getElementById('nav-btn-map');
+    const navEco = document.getElementById('nav-btn-eco');
+    const navCommand = document.getElementById('nav-btn-command');
+    
+    if (navChat) navChat.innerHTML = `<span class="nav-icon">💬</span> ${t.copilot.substring(3)}`;
+    if (navMap) navMap.innerHTML = `<span class="nav-icon">🗺️</span> ${t.map.substring(3)}`;
+    if (navEco) navEco.innerHTML = `<span class="nav-icon">🌱</span> ${t.eco.substring(3)}`;
+    if (navCommand) navCommand.innerHTML = `<span class="nav-icon">🚨</span> ${t.command.substring(3)}`;
+    
+    const chatTitle = document.getElementById('chat-title-id');
+    if (chatTitle) chatTitle.textContent = t.chat_title;
+    
+    const ttsLabel = document.querySelector('.toggle-label');
+    if (ttsLabel) ttsLabel.innerHTML = `🔊 ${t.voice.substring(2)}`;
+}
+
 // 4. AI Copilot Chat Interface
 function initChatInterface() {
     const chatForm = document.getElementById('chat-form-id');
@@ -170,7 +216,9 @@ function initChatInterface() {
     
     selectLang.addEventListener('change', (e) => {
         appState.language = e.target.value;
+        document.documentElement.lang = appState.language;
         announceA11y(`Assistant output language updated to ${e.target.options[e.target.selectedIndex].text}`);
+        reLocalizeUIElements(appState.language);
     });
     
     checkTts.addEventListener('change', (e) => {
@@ -408,12 +456,16 @@ async function refreshGatesTraffic() {
         
         data.forEach(gate => {
             const sevClass = gate.congestion_level.toLowerCase();
+            let indicator = "●○○";
+            if (sevClass === "medium") indicator = "●●○";
+            else if (sevClass === "high") indicator = "●●●";
+            
             const widget = document.createElement('div');
             widget.className = `gate-traffic-widget status-${sevClass}`;
             widget.innerHTML = `
                 <div class="gate-widget-header">
                     <span class="gate-name-label">${gate.gate}</span>
-                    <span class="gate-status-pill ${sevClass}">${gate.congestion_level}</span>
+                    <span class="gate-status-pill ${sevClass}">${indicator} ${gate.congestion_level}</span>
                 </div>
                 <div class="gate-widget-stats">
                     <span>Wait: <strong>${gate.wait_time_minutes} min</strong></span>
