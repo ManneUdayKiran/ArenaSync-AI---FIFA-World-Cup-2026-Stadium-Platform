@@ -1,0 +1,44 @@
+[tool.poetry]
+name = "arenasync-ai"
+version = "1.0.0"
+description = "GenAI stadium operations and fan experience platform for FIFA World Cup 2026."
+authors = ["Uday Kiran <udaykiran@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.100.0"
+pydantic = "^2.0"
+uvicorn = "^0.22.0"
+httpx = "^0.24.0"
+jinja2 = "^3.1.2"
+python-multipart = "^0.0.6"
+
+[tool.ruff]
+# Enable standard formatting and import rules
+select = ["E", "F", "I", "W"]
+ignore = []
+
+# Restrict line lengths
+line-length = 120
+
+# Target python version
+target-version = "py310"
+
+[tool.ruff.mccabe]
+# Max branching complexity limit
+max-complexity = 12
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+ignore_missing_imports = true
+strict = false
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
