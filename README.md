@@ -221,26 +221,45 @@ ArenaSync AI is configured to deploy as a Python serverless function on Vercel:
 
 ---
 
-## 🛡️ Code Quality & Resource Efficiency
-
-### 1. AST Code Quality Audits
-All Python modules are checked via python's Abstract Syntax Tree analyzer inside [test_code_quality.py](file:///c:/Users/udayk/OneDrive/Desktop/Hackathons/ArenaSync-AI/tests/test_code_quality.py). The code enforces:
-- Complete module, class, and public function docstring headers.
-- Snake_case naming for variables and CamelCase for classes.
-- Maximum function length of 120 lines and maximum cognitive branch complexity of 12.
-- Banning of print statements (using clean `logging` instead) and wildcard imports.
-
-### 2. High-Speed Resource Efficiency
-- **RAG Precomputation**: Precomputes keyword lookup strings and tag search indexes at startup. This reduces RAG search time under stress to **~0.035 milliseconds**.
-- **LLM Response Caching**: Operates an in-memory query response cache inside `GroqService` (with a 5-minute TTL). Repeated stadium instructions are served instantly from RAM in **~0.020 milliseconds** (a **25,000x speedup** bypassing network roundtrips).
-
 ---
 
-## ♿ Accessibility & Inclusivity Guidelines (WCAG)
+## 🛡️ Quality Attributes & Technical Design
 
-ArenaSync AI is constructed to support WCAG inclusive design guidelines:
-1. **Visual Contrast Override**: Toggling the contrast button adjusts HSL color variables (pure dark `#000000` backgrounds, high contrast `#FFFFFF` typography, and bright yellow links) for visually impaired guests.
-2. **Flexible Font Magnifier**: Incremental sizing scale (+/- buttons) scales body font parameters safely from 12px to 24px without layout breaking.
-3. **Screen Reader Integration**: State alterations (e.g. "Points claimed", "Plan generated") write descriptive alerts to a screen-reader dedicated landmark (`id="sr-announcements" aria-live="polite"`).
-4. **Keyboard Control Focus**: All forms, selects, buttons, and navigation elements feature high-visibility border outlines when focused using `Tab` key.
-5. **Auditory Synthesis Output (TTS)**: Built-in translation utterance converter reads AI responses out loud in English, Spanish, or French.
+### 🔐 Security
+- **No Secrets in Code**: The API key is read from the environment only; `.env` is git-ignored and only `.env.example` is committed. Missing key falls back gracefully to `MockLLM` simulation mode.
+- **Strict Input Validation (Pydantic v2)**: Enforces validation schemas with Enums for language (`en`, `es`, `fr`), roles (`fan`, `volunteer`, `organizer`), and validation rules for fields (length/pattern-limited strings). Unknown zone IDs are rejected, and unknown request fields are forbidden (`extra="forbid"`).
+- **Prompt-Injection Defense**: Sanitizes free-text fields (stripping control chars and capping length), wrapping them in a clearly delimited `<user_question>` block, and instructs the model to treat the content as data only. The decision is computed before and independently of the question, so injection can never change routing or facts (proven by `test_security.py`).
+- **Security Headers on Every Response**: Employs custom middleware to inject `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, and a strict `Content-Security-Policy`.
+- **Restrictive CORS & Rate Limiting**: Restricts CORS to explicit allowed origins list and runs an in-memory per-IP token-bucket rate limiter on `/api/assistant/chat` (responding with `429 Too Many Requests` + `Retry-After`).
+- **Privacy-Safe Logging**: Logs only zone IDs, intents, and outcomes. Never logs private details, API keys, or raw user questions.
+
+### ⚡ Efficiency
+- **Singleton Parser**: JSON fixtures are parsed once at startup and memoized.
+- **Short-Circuit Logic**: Bypasses the LLM entirely for rule-only queries (like train times or bag policy lookups) and `/health` requests, returning static grounded answers.
+- **Phrasing Memoization**: Localized phrasing helpers and suggested action generators are memoized with `@lru_cache` keyed on hashable contexts.
+- **Async Endpoints**: All router endpoints run asynchronously, allowing Uvicorn to multiplex concurrent operational flows.
+- **Capped Output Limits**: Caps completions requests with a low `max_tokens` (256 tokens) to prevent high latency tails and excessive token billing.
+
+### ♿ Accessibility — WCAG 2.1 AA Compliance
+- **Semantic Landmarks**: Uses standard HTML5 semantic elements (`<header>`, `<nav>`, `<main>`, `<footer>`), enforces a single `<h1>` tag per page, and provides a visible Skip to Content (`class="skip-link"`) link.
+- **Form Controls & Labels**: Every input control maps to an associated `<label>` tag. Checkbox groups use `<fieldset>`/`<legend>` blocks. AI output boxes feature `aria-live="polite"` landmarks.
+- **Keyboard Operability**: Entire page is navigable via standard `Tab` index, rendering clear, high-contrast outlines on `:focus-visible` elements.
+- **Color Independence & Contrast**: Contrast ratio is verified above `4.5:1` (e.g. white text on `#0b5c3f` green header is `8.0:1`). Crowd congestion levels display shape indicators (`●●○` for Medium, `●●●` for High) alongside color badges.
+- **Dynamic Localization**: Updates the `<html lang>` tag to match the current locale and dynamically re-translates UI controls and options on language switch.
+- **Reduced Motion**: Enforces media query rules to strip out page animations when `prefers-reduced-motion` is active.
+
+### 🧪 Comprehensive Offline Testing
+The project implements a complete offline testing suite (requiring no external network requests or active API keys) comprising 43 tests:
+- **test_schemas.py**: payload validators, extra-field blocks, out-of-bounds inputs, and sanitizations.
+- **test_context_engine.py**: verifies wheelchair to step-free maps, visual assistance landmarks, hearing aid devices, imminent kickoff warnings, and crowd transit lookups.
+- **test_api.py**: endpoints lifecycle, health checks, localization routing, 422 validations, and 404 guards.
+- **test_security.py**: rate limit blocks, CORS checks, headers, and injection-neutrality tests.
+- **test_llm.py**: MockLLM fallback logic and client initialization constraints.
+- **test_crowd.py, test_routing.py, test_phrasing.py, test_stadium_data.py, test_static.py**: crowd simulation steps, step-free pathfinding, translations, and static accessibility tags.
+
+**Quality Verification Tooling**:
+- Python files are audited with `ruff check` and strict `mypy` typing checks.
+- Runs complete tests with coverage validation:
+  ```bash
+  python -m pytest tests/
+  ```
