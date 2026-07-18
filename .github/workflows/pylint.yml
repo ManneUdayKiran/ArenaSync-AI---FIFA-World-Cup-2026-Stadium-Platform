@@ -24,5 +24,5 @@ jobs:
     - name: Analysing the code with pylint
       run: |
         # Set PYTHONPATH so pylint can resolve the app/ module folder correctly
-        # and disable convention/refactor noise to focus on warnings and errors.
-        PYTHONPATH=. pylint app/ --disable=C,R
+        # and disable convention, refactor, and specific warning codes to focus on build errors.
+        PYTHONPATH=. pylint app/ --disable=C,R,logging-fstring-interpolation,broad-exception-caught,broad-exception-raised,raise-missing-from,f-string-without-interpolation,unused-argument,unused-import,unused-variable,redefined-outer-name

@@ -2,7 +2,6 @@
 Stateful stadium operations simulator generating real-time gates status and tracking incident logs.
 """
 import random
-import time
 from datetime import datetime
 from typing import List, Dict
 
@@ -90,7 +89,7 @@ class StadiumSimulator:
 
     def get_gates(self) -> List[Dict]:
         """Dynamically simulate minor gate queue variations & return all gate states."""
-        for gate_name, data in self.gates.items():
+        for _, data in self.gates.items():
             # Add small random noise to make the UI look alive
             noise = random.randint(-150, 150)
             new_occ = max(1000, min(data["max_capacity"], data["current_occupancy"] + noise))

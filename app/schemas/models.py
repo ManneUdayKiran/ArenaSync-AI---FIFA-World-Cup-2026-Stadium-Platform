@@ -4,7 +4,7 @@ Pydantic data transfer schemas validating API request/response structures.
 from enum import Enum
 import re
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 class UserRole(str, Enum):
     """Supported roles for the ArenaSync AI system."""

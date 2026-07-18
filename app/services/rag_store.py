@@ -2,7 +2,6 @@
 RAG grounding retrieval store searching and matching local knowledge base chunks.
 """
 import re
-from typing import List, Dict
 
 # Knowledge base data chunks
 KNOWLEDGE_BASE = [
@@ -70,12 +69,12 @@ KNOWLEDGE_BASE = [
 
 # Precompute data to optimize CPU usage and memory footprint
 PRECOMPUTED_KB = []
-for chunk in KNOWLEDGE_BASE:
+for kb_chunk in KNOWLEDGE_BASE:
     PRECOMPUTED_KB.append({
-        "chunk": chunk,
-        "title_lower": chunk["title"].lower(),
-        "search_text": f"{chunk['title']} {chunk['content']} {' '.join(chunk['tags'])}".lower(),
-        "tags_set": set(chunk["tags"])
+        "chunk": kb_chunk,
+        "title_lower": kb_chunk["title"].lower(),
+        "search_text": f"{kb_chunk['title']} {kb_chunk['content']} {' '.join(kb_chunk['tags'])}".lower(),
+        "tags_set": set(kb_chunk["tags"])
     })
 
 def search_rag(query: str, limit: int = 3) -> str:
