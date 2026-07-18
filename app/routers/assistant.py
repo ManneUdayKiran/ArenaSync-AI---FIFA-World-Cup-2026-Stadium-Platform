@@ -1,3 +1,6 @@
+"""
+API Router for the AI assistant chatbot, handling RAG context injection and multi-agent translation.
+"""
 from fastapi import APIRouter, HTTPException
 from app.schemas.models import AssistantRequest, AssistantResponse
 from app.services.groq_service import groq_service

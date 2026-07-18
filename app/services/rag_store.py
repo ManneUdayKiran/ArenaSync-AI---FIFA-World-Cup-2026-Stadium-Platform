@@ -1,3 +1,6 @@
+"""
+RAG grounding retrieval store searching and matching local knowledge base chunks.
+"""
 import re
 from typing import List, Dict
 

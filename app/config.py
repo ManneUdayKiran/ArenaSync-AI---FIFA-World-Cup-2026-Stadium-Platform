@@ -1,3 +1,6 @@
+"""
+Configuration module loader for environment variables.
+"""
 import os
 
 # Configuration settings

@@ -1,3 +1,6 @@
+"""
+Service client executing LLM chat assistance, translation steps, and response plan drafts.
+"""
 import json
 import logging
 import httpx
@@ -31,6 +34,10 @@ MOCK_RESPONSES = {
 }
 
 class GroqService:
+    """
+    Main service executing the multi-agent LLM reasoning loops via Groq API client
+    or simulating intelligence response patterns locally.
+    """
     def __init__(self):
         self.api_url = "https://api.groq.com/openai/v1/chat/completions"
         self.api_key = settings.GROQ_API_KEY

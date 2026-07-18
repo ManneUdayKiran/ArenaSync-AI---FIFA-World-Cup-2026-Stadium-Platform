@@ -1,3 +1,6 @@
+"""
+Main application file containing FastAPI router mounts, middleware and configurations.
+"""
 import os
 import time
 from fastapi import FastAPI, Request

@@ -1,3 +1,6 @@
+"""
+Pydantic data transfer schemas validating API request/response structures.
+"""
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 

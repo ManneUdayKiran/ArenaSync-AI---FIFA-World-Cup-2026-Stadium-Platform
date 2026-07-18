@@ -1,3 +1,6 @@
+"""
+API Router for stadium operations, containing gate status retrieval, incident ticket creation, and incident action drafting.
+"""
 from fastapi import APIRouter, HTTPException, Path
 from typing import List
 from app.schemas.models import CrowdStatusResponse, Incident, IncidentCreate, IncidentResolutionResponse

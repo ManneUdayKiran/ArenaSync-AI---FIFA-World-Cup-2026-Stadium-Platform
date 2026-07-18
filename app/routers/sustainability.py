@@ -1,3 +1,6 @@
+"""
+API Router for sustainability metrics, gamified points, and trash analysis.
+"""
 from fastapi import APIRouter, HTTPException
 from app.schemas.models import WasteAnalysisRequest, WasteAnalysisResponse, SustainabilityLeaderboardResponse, LeaderboardEntry
 from app.services.groq_service import groq_service

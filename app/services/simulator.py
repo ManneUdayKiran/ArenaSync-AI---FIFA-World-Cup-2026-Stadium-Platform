@@ -1,9 +1,15 @@
+"""
+Stateful stadium operations simulator generating real-time gates status and tracking incident logs.
+"""
 import random
 import time
 from datetime import datetime
 from typing import List, Dict
 
 class StadiumSimulator:
+    """
+    Main simulator class maintaining in-memory state of gates and incident reports.
+    """
     def __init__(self):
         # Setup gates default state
         self.gates = {
@@ -105,9 +111,11 @@ class StadiumSimulator:
         return list(self.gates.values())
 
     def get_incidents(self) -> List[Dict]:
+        """Fetch the active global incidents list."""
         return self.incidents
 
     def create_incident(self, incident_data: Dict) -> Dict:
+        """Create and prepend a new incident ticket to the in-memory log."""
         incident_id = f"INC-{random.randint(1000, 9999)}"
         new_incident = {
             "id": incident_id,
@@ -122,6 +130,7 @@ class StadiumSimulator:
         return new_incident
 
     def resolve_incident(self, incident_id: str) -> bool:
+        """Mark a specific incident ticket as resolved."""
         for idx, inc in enumerate(self.incidents):
             if inc["id"] == incident_id:
                 self.incidents[idx]["status"] = "Resolved"
@@ -129,6 +138,7 @@ class StadiumSimulator:
         return False
 
     def add_sustainability_stats(self, username: str, points: int, co2: float):
+        """Add carbon savings points and offset data to global metrics and user leaderboard."""
         self.sustainability_points += points
         self.co2_saved += co2
         
@@ -152,6 +162,7 @@ class StadiumSimulator:
         self.leaderboard.sort(key=lambda x: x["points"], reverse=True)
 
     def get_leaderboard(self) -> List[Dict]:
+        """Get the active sorted sustainability high-score leaderboard."""
         return self.leaderboard
 
 simulator = StadiumSimulator()
