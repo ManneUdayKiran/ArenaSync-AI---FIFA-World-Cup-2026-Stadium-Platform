@@ -43,6 +43,7 @@ class GroqService:
         self.api_key = settings.GROQ_API_KEY
         self.model = settings.GROQ_MODEL
         self.is_active = bool(self.api_key)
+        self.response_cache = {}
         
         if self.is_active:
             logger.info(f"Groq Service active using model {self.model}.")
@@ -76,7 +77,19 @@ class GroqService:
     def get_assistant_response(self, role: str, query: str, history: List[Dict], language: str) -> Dict:
         """
         Coordinates AI Assistant Agent and Translation Agent to output localized responses.
+        Uses a local cache memory to avoid duplicate external API queries.
         """
+        import time
+        history_tuple = tuple((h.get("role", ""), h.get("content", "")) for h in history)
+        cache_key = (role, query.strip().lower(), history_tuple, language)
+        now = time.time()
+        
+        if cache_key in self.response_cache:
+            cached_result, timestamp = self.response_cache[cache_key]
+            if now - timestamp < 300:
+                logger.info("High-speed Cache HIT for assistant response.")
+                return cached_result
+
         # Step 1: Search RAG grounding store
         rag_context = search_rag(query)
         
@@ -87,11 +100,13 @@ class GroqService:
             # Fallback mock mode
             raw_response = self._get_mock_fallback_response(role, query, rag_context)
             localized_response = self._mock_translate(raw_response, language)
-            return {
+            result = {
                 "response": localized_response,
                 "detected_language": language,
                 "suggested_actions": suggested_actions
             }
+            self.response_cache[cache_key] = (result, now)
+            return result
 
         # --- Multi-Agent Execution (Live Groq API) ---
         try:
@@ -126,11 +141,13 @@ class GroqService:
             # 2. Translation Agent Prompting (Translates output into requested language)
             if language == "en":
                 # Already in requested language
-                return {
+                result = {
                     "response": assistant_output,
                     "detected_language": language,
                     "suggested_actions": suggested_actions
                 }
+                self.response_cache[cache_key] = (result, now)
+                return result
                 
             translation_system_prompt = (
                 f"You are the 'Translation Agent' for MetLife Stadium at the FIFA World Cup 2026.\n"
@@ -150,21 +167,25 @@ class GroqService:
                 # Return original assistant output if translation agent fails
                 translated_output = f"[Translation unavailable] {assistant_output}"
                 
-            return {
+            result = {
                 "response": translated_output,
                 "detected_language": language,
                 "suggested_actions": suggested_actions
             }
+            self.response_cache[cache_key] = (result, now)
+            return result
             
         except Exception as e:
             logger.error(f"Error in multi-agent pipeline: {e}. Falling back to simulation.")
             raw_response = self._get_mock_fallback_response(role, query, rag_context)
             localized_response = self._mock_translate(raw_response, language)
-            return {
+            result = {
                 "response": localized_response,
                 "detected_language": language,
                 "suggested_actions": suggested_actions
             }
+            self.response_cache[cache_key] = (result, now)
+            return result
 
     def generate_incident_response_plan(self, incident: Dict) -> Dict:
         """

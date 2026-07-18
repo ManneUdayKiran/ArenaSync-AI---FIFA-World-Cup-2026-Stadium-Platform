@@ -68,6 +68,16 @@ KNOWLEDGE_BASE = [
     }
 ]
 
+# Precompute data to optimize CPU usage and memory footprint
+PRECOMPUTED_KB = []
+for chunk in KNOWLEDGE_BASE:
+    PRECOMPUTED_KB.append({
+        "chunk": chunk,
+        "title_lower": chunk["title"].lower(),
+        "search_text": f"{chunk['title']} {chunk['content']} {' '.join(chunk['tags'])}".lower(),
+        "tags_set": set(chunk["tags"])
+    })
+
 def search_rag(query: str, limit: int = 3) -> str:
     """
     Search the local knowledge base using a token overlap ranking.
@@ -79,17 +89,20 @@ def search_rag(query: str, limit: int = 3) -> str:
         return "\n\n".join([f"[{chunk['title']}]: {chunk['content']}" for chunk in KNOWLEDGE_BASE[:2]])
     
     scored_chunks = []
-    for chunk in KNOWLEDGE_BASE:
+    for item in PRECOMPUTED_KB:
         score = 0
-        # Match inside title, content and tags
-        text_to_search = f"{chunk['title']} {chunk['content']} {' '.join(chunk['tags'])}".lower()
+        chunk = item["chunk"]
+        search_text = item["search_text"]
+        tags_set = item["tags_set"]
+        title_lower = item["title_lower"]
+        
         for token in query_tokens:
             if len(token) > 2:  # Skip tiny words like to, an, is, on
-                score += text_to_search.count(token)
+                score += search_text.count(token)
                 # Boost weight if word in tags or title
-                if token in chunk['tags']:
+                if token in tags_set:
                     score += 2
-                if token in chunk['title'].lower():
+                if token in title_lower:
                     score += 3
         
         if score > 0:

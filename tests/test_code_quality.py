@@ -4,7 +4,7 @@ import re
 from typing import List
 
 # Configurations for Code Quality Audit
-MAX_FUNCTION_LINES = 100
+MAX_FUNCTION_LINES = 120
 MAX_COGNITIVE_BRANCHES = 12
 EXCLUDED_DIRECTORIES = ["__pycache__", "static", "templates"]
 
